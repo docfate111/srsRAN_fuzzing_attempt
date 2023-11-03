@@ -115,8 +115,8 @@ void mme::run_thread()
   m_running = true;
 
   // Get S1-MME and S11 sockets
-  int s1mme = m_s1ap->get_s1_mme();
-  int s11   = m_mme_gtpc->get_s11();
+  int s1mme = STDIN_FILENO; //m_s1ap->get_s1_mme();
+  int s11   = STDIN_FILENO; //m_mme_gtpc->get_s11();
 
   while (m_running) {
     pdu->clear();
@@ -140,7 +140,10 @@ void mme::run_thread()
     } else if (n) {
       // Handle S1-MME
       if (FD_ISSET(s1mme, &m_set)) {
-        rd_sz = sctp_recvmsg(s1mme, pdu->msg, sz, (struct sockaddr*)&enb_addr, &fromlen, &sri, &msg_flags);
+	// replacing sctp_recvmsg here
+        rd_sz = read(STDIN_FILENO, pdu->msg, sz);
+	//, MSG_WAITALL, (struct sockaddr*)&enb_addr, &fromlen);
+	//, &sri, &msg_flags);
         if (rd_sz == -1 && errno != EAGAIN) {
           m_s1ap_logger.error("Error reading from SCTP socket: %s", strerror(errno));
         } else if (rd_sz == -1 && errno == EAGAIN) {
@@ -165,7 +168,8 @@ void mme::run_thread()
       }
       // Handle S11
       if (FD_ISSET(s11, &m_set)) {
-        pdu->N_bytes = recvfrom(s11, pdu->msg, sz, 0, NULL, NULL);
+        pdu->N_bytes = read(STDIN_FILENO, pdu->msg, sz);
+	//recvfrom(s11, pdu->msg, sz, 0, NULL, NULL);
         m_mme_gtpc->handle_s11_pdu(pdu.get());
       }
       // Handle NAS Timers
