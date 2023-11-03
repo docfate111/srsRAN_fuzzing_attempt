@@ -383,7 +383,12 @@ static void signal_handler()
 
 int main(int argc, char* argv[])
 {
-  srsran_register_signal_handler(signal_handler);
+	/*
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
+  DoSomethingInterestingWithMyAPI(Data, Size);
+  return 0;  // Values other than 0 and -1 are reserved for future use.
+} */ 
+ srsran_register_signal_handler(signal_handler);
   add_emergency_cleanup_handler(emergency_cleanup_handler, nullptr);
 
   // print build info
@@ -396,7 +401,7 @@ int main(int argc, char* argv[])
   parse_args(&args, argc, argv);
 
   // Setup logging.
-  log_sink = (args.log_args.filename == "stdout") ? srslog::create_stdout_sink()
+  /*log_sink = (args.log_args.filename == "stdout") ? srslog::create_stdout_sink()
                                                   : srslog::create_file_sink(args.log_args.filename);
   if (!log_sink) {
     return SRSRAN_ERROR;
@@ -444,12 +449,12 @@ int main(int argc, char* argv[])
   auto& spgw_logger = srslog::fetch_basic_logger("SPGW", false);
   spgw_logger.set_level(srslog::str_to_basic_level(args.log_args.spgw_level));
   spgw_logger.set_hex_dump_max_size(args.log_args.spgw_hex_limit);
-
-  hss* hss = hss::get_instance();
+	*/
+  /*hss* hss = hss::get_instance();
   if (hss->init(&args.hss_args)) {
     cout << "Error initializing HSS" << endl;
     exit(1);
-  }
+  }*/
 
   mme* mme = mme::get_instance();
   if (mme->init(&args.mme_args)) {
@@ -457,25 +462,26 @@ int main(int argc, char* argv[])
     exit(1);
   }
 
-  spgw* spgw = spgw::get_instance();
+  /*spgw* spgw = spgw::get_instance();
   if (spgw->init(&args.spgw_args, hss->get_ip_to_imsi())) {
     cout << "Error initializing SP-GW" << endl;
     exit(1);
-  }
+  }*/
 
   mme->start();
-  spgw->start();
+  //spgw->start();
+  
   while (running) {
     sleep(1);
   }
 
   mme->stop();
   mme->cleanup();
-  spgw->stop();
+  /*spgw->stop();
   spgw->cleanup();
   hss->stop();
   hss->cleanup();
-
+	*/
   cout << std::endl << "---  exiting  ---" << endl;
   return 0;
 }
